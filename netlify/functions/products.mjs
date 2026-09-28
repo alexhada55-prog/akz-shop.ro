@@ -42,6 +42,10 @@ function clean(list) {
       tag: p.tag === "Nou" || p.tag === "Promoție" ? p.tag : null,
       icon: ICONS.includes(p.icon) ? p.icon : "giftbox",
       sizes: sizes.length ? sizes : ["Unică"],
+      desc: typeof p.desc === "string" ? p.desc.trim().slice(0, 1500) : "",
+      specs: (Array.isArray(p.specs) ? p.specs : [])
+        .filter((x) => x && typeof x.k === "string" && typeof x.v === "string" && x.k.trim() && x.v.trim())
+        .slice(0, 12).map((x) => ({ k: x.k.trim().slice(0, 40), v: x.v.trim().slice(0, 120) })),
       img: typeof p.img === "string" && p.img.length < 300000 && IMG_RE.test(p.img) ? p.img : null,
     });
   }
