@@ -245,6 +245,24 @@ header{position:sticky;top:0;top:env(safe-area-inset-top,0px);z-index:50;backgro
   width:54px;height:54px;border-radius:50%;background:#25D366;border:none;font-size:26px;
   box-shadow:0 8px 20px rgba(0,0,0,.3);cursor:pointer;display:flex;align-items:center;justify-content:center}
 .wa-float:active{transform:scale(.94)}
+
+/* DETALII PRODUS */
+.card .thumb,.card h3{cursor:pointer}
+.card .more{background:none;border:none;padding:0;margin:0 0 12px;color:var(--blue);font:inherit;font-size:13px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.modal.pm{width:880px;max-height:92vh;overflow:auto;padding:0;display:grid;grid-template-columns:1fr 1fr;position:relative}
+.pm .pimg{background:#fff;display:flex;align-items:center;justify-content:center;position:relative;min-height:340px;overflow:hidden}
+.pm .pimg svg{width:55%}
+.pm .pbody{padding:34px 30px}
+.pm h2{font-size:27px;margin:4px 0 8px;line-height:1.15}
+.pm .pprice{font-size:22px;font-weight:700;margin-bottom:16px}
+.pm .pdesc{font-size:14.5px;line-height:1.7;margin:0 0 18px;white-space:pre-line}
+.pm dl{margin:0 0 20px;border-top:1px solid var(--line)}
+.pm dl div{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.pm dt{color:var(--muted)} .pm dd{margin:0;font-weight:600;text-align:right}
+.pm .cat{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}
+.pm .pclose{position:absolute;top:10px;right:12px;z-index:2;background:var(--paper);border:1px solid var(--line);width:36px;height:36px;font-size:22px;cursor:pointer;line-height:1}
+.field textarea{width:100%;background:#fff;border:1px solid var(--line);color:var(--ink);padding:10px;font:inherit;font-size:14px;resize:vertical}
+@media(max-width:700px){.modal.pm{grid-template-columns:1fr}.pm .pimg{min-height:0;aspect-ratio:1/1}.pm .pbody{padding:24px 20px}}
 </style>
 </head>
 <body>
@@ -365,6 +383,8 @@ header{position:sticky;top:0;top:env(safe-area-inset-top,0px);z-index:50;backgro
       <div class="field"><label>Mărimi (separate prin virgulă)</label><input id="fSizes" placeholder="Unică"></div>
       <div class="field"><label>Etichetă</label><select id="fTag"><option value="">Fără</option><option>Nou</option><option>Promoție</option></select></div>
       <div class="field"><label>Pictogramă (dacă nu ai poză)</label><select id="fIcon"><option value="giftbox">Cutie cadou</option><option value="sponge">Burete</option><option value="brush">Pensulă</option><option value="palette">Paletă</option><option value="hoodie">Hanorac</option><option value="tee">Tricou</option><option value="bluza">Bluză</option></select></div>
+      <div class="field full"><label>Descriere (opțional)</label><textarea id="fDesc" rows="3" maxlength="1500"></textarea></div>
+      <div class="field full"><label>Specificații (una pe linie, format Nume: valoare)</label><textarea id="fSpecs" rows="4" placeholder="Material: bumbac 100%&#10;Gramaj: 320 g"></textarea></div>
       <div class="field"><label>Poză (opțional)</label><input id="fImg" type="file" accept="image/*"></div>
       <div class="full"><button class="btn" type="submit" id="fSubmit">Adaugă produs</button><button class="btn ghost" type="button" onclick="resetForm()">Anulează</button></div>
     </form>
@@ -423,6 +443,8 @@ header{position:sticky;top:0;top:env(safe-area-inset-top,0px);z-index:50;backgro
   <div class="footer-bottom">© 2026 AKZ.ro — Toate drepturile rezervate. Acesta este un demo vizual de shop. <a href="#" onclick="openAdmin();return false;" style="color:inherit;text-decoration:underline">Admin</a><br>
   Conform legislației UE, litigiile pot fi soluționate și prin platforma <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">SOL</a>.</div>
 </footer>
+
+<div class="modalbg" id="productModal" onclick="if(event.target===this)closeProduct()"><div class="modal pm" id="pmBox" role="dialog" aria-modal="true" aria-labelledby="pmName"></div></div>
 
 <div class="modalbg" id="sizeGuideModal">
   <div class="modal" style="width:420px">
@@ -486,12 +508,12 @@ function thumbHTML(p){ return (p.img && SAFE_IMG.test(p.img)) ? `<img src="${p.i
 const DEFAULT_PRODUCTS = [
   {id:1,name:'Burete machiaj — Beauty Blender',price:39,icon:'sponge',cat:'Cosmetice',tag:'Nou',sizes:['Unică']},
   {id:2,name:'Set 3 bureți machiaj',price:89,icon:'sponge',cat:'Cosmetice',tag:'Promoție',sizes:['Unică']},
-  {id:3,name:'Set 8 pensule machiaj',price:119,icon:'brush',cat:'Cosmetice',tag:'Nou',sizes:['Unică']},
+  {id:3,name:'Set 8 pensule machiaj',price:119,icon:'brush',cat:'Cosmetice',tag:'Nou',sizes:['Unică'],desc:'Set complet pentru față și ochi, cu păr sintetic moale, potrivit pentru produse lichide și pudră.',specs:[{k:'Conținut',v:'8 pensule'},{k:'Păr',v:'sintetic, vegan'},{k:'Include',v:'husă de depozitare'}]},
   {id:4,name:'Pensulă Kabuki',price:49,icon:'brush',cat:'Cosmetice',tag:null,sizes:['Unică']},
   {id:5,name:'Paletă farduri — Dinastia',price:139,icon:'palette',cat:'Cosmetice',tag:'Nou',sizes:['Unică']},
   {id:6,name:'Pachet cadou — Surpriză',price:159,icon:'giftbox',cat:'Cadou',tag:'Promoție',sizes:['Unică']},
   {id:7,name:'Pachet cadou — Cosmetice Deluxe',price:229,icon:'giftbox',cat:'Cadou',tag:'Nou',sizes:['Unică']},
-  {id:8,name:'Hanorac personalizat — poză/text',price:229,icon:'hoodie',cat:'Personalizat',tag:'Nou',sizes:['S','M','L','XL','XXL']},
+  {id:8,name:'Hanorac personalizat — poză/text',price:229,icon:'hoodie',cat:'Personalizat',tag:'Nou',sizes:['S','M','L','XL','XXL'],desc:'Hanorac călduros, cu poza sau textul tău imprimat pe piept sau pe spate.\nTrimite-ne modelul pe WhatsApp după comandă și îți confirmăm înainte de imprimare.',specs:[{k:'Material',v:'bumbac 80% / poliester 20%'},{k:'Gramaj',v:'320 g/m²'},{k:'Imprimare',v:'transfer termic, rezistent la spălare'},{k:'Livrare',v:'5–7 zile lucrătoare'}]},
   {id:9,name:'Tricou personalizat — poză/text',price:119,icon:'tee',cat:'Personalizat',tag:null,sizes:['S','M','L','XL','XXL']},
   {id:10,name:'Bluză personalizată',price:159,icon:'bluza',cat:'Personalizat',tag:null,sizes:['S','M','L','XL']},
 ];
@@ -552,11 +574,12 @@ function saveCart(){localStorage.setItem('akz_cart', JSON.stringify(cart)); rend
 
 function cardHTML(p){
   return `<div class="card">
-      <div class="thumb">${p.tag?`<span class="chip ${p.tag==='Nou'?'nou':'promo'}">${esc(p.tag)}</span>`:''}${thumbHTML(p)}</div>
+      <div class="thumb" onclick="openProduct(${p.id})">${p.tag?`<span class="chip ${p.tag==='Nou'?'nou':'promo'}">${esc(p.tag)}</span>`:''}${thumbHTML(p)}</div>
       <div class="info">
         <div class="cat">${esc(p.cat)}</div>
-        <h3>${esc(p.name)}</h3>
+        <h3 onclick="openProduct(${p.id})">${esc(p.name)}</h3>
         <div class="price">${fmt(p.price)}</div>
+        <button class="more" onclick="openProduct(${p.id})">Vezi detalii</button>
         <div class="sizes">${p.sizes.map(s=>`<button class="${selectedSize[p.id]===s?'sel':''}" onclick="pickSize(${p.id},'${s}',this)">${s}</button>`).join('')}</div>
         <button class="addbtn" onclick="addToCart(${p.id})">Adaugă în coș</button>
         <div class="quickorder">
@@ -727,7 +750,7 @@ function renderAdmin(){
 function resetForm(){ editId=null; pendingImg=null; document.getElementById('adminForm').reset(); document.getElementById('fSubmit').textContent='Adaugă produs'; }
 function editProduct(id){
   const p = PRODUCTS.find(x=>x.id===id); editId=id; pendingImg=p.img||null;
-  fName.value=p.name; fPrice.value=p.price; fCat.value=p.cat; fSizes.value=p.sizes.join(', '); fTag.value=p.tag||''; fIcon.value=p.icon||'giftbox';
+  fName.value=p.name; fPrice.value=p.price; fCat.value=p.cat; fSizes.value=p.sizes.join(', '); fTag.value=p.tag||''; fIcon.value=p.icon||'giftbox'; fDesc.value=p.desc||''; fSpecs.value=(p.specs||[]).map(x=>x.k+': '+x.v).join('\n');
   document.getElementById('fSubmit').textContent='Salvează modificările';
   document.getElementById('adminForm').scrollIntoView({behavior:'smooth'});
 }
@@ -736,7 +759,9 @@ async function resetProducts(){ if(confirm('Revii la produsele demo inițiale? P
 async function saveProduct(e){
   e.preventDefault();
   const sizes = fSizes.value.split(',').map(s=>s.trim()).filter(Boolean);
-  const data = {name:fName.value.trim(), price:parseFloat(fPrice.value)||0, cat:fCat.value, tag:fTag.value||null, icon:fIcon.value, sizes:sizes.length?sizes:['Unică']};
+  const data = {name:fName.value.trim(), price:parseFloat(fPrice.value)||0, cat:fCat.value, tag:fTag.value||null, icon:fIcon.value, sizes:sizes.length?sizes:['Unică'],
+    desc:fDesc.value.trim(),
+    specs:fSpecs.value.split('\n').map(l=>{const i=l.indexOf(':');return i>0?{k:l.slice(0,i).trim(),v:l.slice(i+1).trim()}:null;}).filter(x=>x&&x.k&&x.v)};
   if(editId!==null){
     const i = PRODUCTS.findIndex(p=>p.id===editId);
     PRODUCTS[i] = Object.assign({}, PRODUCTS[i], data, {img: pendingImg});
@@ -759,9 +784,39 @@ document.getElementById('fImg').addEventListener('change', (e)=>{
   r.readAsDataURL(f);
 });
 
+function openProduct(id){
+  const p = PRODUCTS.find(x=>x.id===id); if(!p) return;
+  selectedSize[id] = selectedSize[id] || p.sizes[0];
+  const specs = (p.specs||[]).map(x=>`<div><dt>${esc(x.k)}</dt><dd>${esc(x.v)}</dd></div>`).join('');
+  document.getElementById('pmBox').innerHTML = `<button class="pclose" onclick="closeProduct()" aria-label="Închide">×</button>
+    <div class="pimg">${p.tag?`<span class="chip ${p.tag==='Nou'?'nou':'promo'}">${esc(p.tag)}</span>`:''}${thumbHTML(p)}</div>
+    <div class="pbody">
+      <div class="cat">${esc(p.cat)}</div>
+      <h2 id="pmName">${esc(p.name)}</h2>
+      <div class="pprice">${fmt(p.price)}</div>
+      ${p.desc?`<p class="pdesc">${esc(p.desc)}</p>`:''}
+      ${specs?`<dl>${specs}</dl>`:''}
+      <div class="sizes">${p.sizes.map(z=>`<button class="${selectedSize[id]===z?'sel':''}" onclick="pickSize(${id},'${z}',this)">${z}</button>`).join('')}</div>
+      <button class="addbtn" onclick="addToCart(${id})">Adaugă în coș</button>
+      <div class="quickorder">
+        <button onclick="orderNow(${id},'email')">📧 Email</button>
+        <button onclick="orderNow(${id},'whatsapp')">💬 WhatsApp</button>
+      </div>
+    </div>`;
+  document.getElementById('productModal').classList.add('show');
+  try{ history.replaceState(null,'','#produs-'+id); }catch(e){}
+}
+function closeProduct(){
+  document.getElementById('productModal').classList.remove('show');
+  try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+  renderFeatured(); renderProducts();
+}
+function openFromHash(){ const m=/^#produs-(\d+)$/.exec(location.hash); if(m) openProduct(Number(m[1])); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeProduct(); });
+
 renderFeatured();
 renderProducts();
-loadProducts();
+loadProducts().then(openFromHash);
 
 const revealObserver = new IntersectionObserver((entries)=>{
   entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); revealObserver.unobserve(e.target); } });
