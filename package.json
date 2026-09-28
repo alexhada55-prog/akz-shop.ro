@@ -1,0 +1,8 @@
+{
+  "name": "akz-shop",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "latest"
+  }
+}
